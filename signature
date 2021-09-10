@@ -1,0 +1,32 @@
+$objSearcher=[adsisearcher]""
+$objSearcher.Filter = "(&(objectClass=user)(sAMAccountName=$env:UserName))"
+$allObjects = $objSearcher.FindAll()
+$all = $allObjects
+$AppSignatures =$env:APPDATA + "\Microsoft\Signatures"
+
+$FileNameList = Get-ChildItem -Path $AppSignatures -Exclude "*.files"
+
+$name = $all.properties.name
+$title = $all.properties.title
+$mobile = $all.properties.mobile
+$mobile = '+{0:# (###) ### ## ##}' -f ([int64]$mobile.TrimStart('+')) 
+$mail =  $all.properties.mail
+$phone = $all.properties.telephonenumber
+
+if ($phone -ne $null){
+  $phone =", доб. "+ $phone
+}
+
+foreach ($FileName in $FileNameList)
+{
+    
+     (Get-Content "$FileName") | Foreach-Object {
+      $_`
+            -replace "@MAIL", $mail `
+            -replace "@NAME", $name `
+            -replace "@TITLE", $title `
+            -replace "@MOBILE", $mobile `
+            -replace "@PHONE", $phone ` 
+                   
+     } | Set-Content "$FileName"
+    }
